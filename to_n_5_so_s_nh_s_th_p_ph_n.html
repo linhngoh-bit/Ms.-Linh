@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toán 5 - Thử Thách So Sánh Số Thập Phân</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & Math-friendly font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    },
+                    boxShadow: {
+                        'soft-3d': '0 6px 0 0 rgba(0, 0, 0, 0.15)',
+                        'soft-3d-active': '0 2px 0 0 rgba(0, 0, 0, 0.15)',
+                        'card-3d': '0 8px 25px -5px rgba(59, 130, 246, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Soft 3D Button Effects */
+        .btn-3d {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 0 var(--shadow-color, #1e40af);
+            transform: translateY(0);
+        }
+        .btn-3d:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 0 var(--shadow-color, #1e40af);
+        }
+        .btn-3d:active {
+            transform: translateY(4px) scale(0.97);
+            box-shadow: 0 2px 0 var(--shadow-color, #1e40af);
+        }
+
+        /* Colorful symbol theme definitions */
+        .sym-greater {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border-color: #ff4757;
+            --shadow-color: #d63031;
+        }
+        .sym-less {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-color: #047857;
+            --shadow-color: #064e3b;
+        }
+        .sym-equal {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            border-color: #4f46e5;
+            --shadow-color: #3730a3;
+        }
+
+        /* Drag & Drop Visuals */
+        .drop-zone-active {
+            border-color: #ec4899 !important;
+            background-color: #fce7f3 !important;
+            transform: scale(1.08);
+        }
+
+        .dragging {
+            opacity: 0.6;
+            transform: scale(0.95);
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .animate-pop {
+            animation: pop 0.35s ease-out forwards;
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* Custom Scrollbar for hints */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-amber-100/70 via-fuchsia-100/60 via-sky-100/70 to-emerald-100/70 min-h-screen text-slate-800 flex flex-col justify-between selection:bg-pink-200 relative overflow-x-hidden">
+
+    <!-- FLOATING COLORFUL DECORATIVE BLOBS -->
+    <div class="fixed top-10 -left-16 w-64 h-64 bg-pink-300/40 rounded-full blur-3xl pointer-events-none -z-10 animate-float"></div>
+    <div class="fixed top-1/2 -right-16 w-72 h-72 bg-amber-300/40 rounded-full blur-3xl pointer-events-none -z-10 animate-float" style="animation-delay: 2s;"></div>
+    <div class="fixed bottom-10 left-1/3 w-80 h-80 bg-cyan-300/40 rounded-full blur-3xl pointer-events-none -z-10 animate-float" style="animation-delay: 1s;"></div>
+
+    <!-- TOP HEADER -->
+    <header class="w-full bg-white/90 backdrop-blur-md border-b-2 border-pink-200/80 sticky top-0 z-30 shadow-md">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-white font-black text-xl px-3.5 py-1.5 rounded-2xl shadow-lg flex items-center space-x-1.5 transform hover:scale-105 transition">
+                    <span class="tracking-wide">TOÁN</span>
+                    <span class="bg-yellow-300 text-purple-900 text-xs px-2 py-0.5 rounded-lg font-black shadow-inner">5</span>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-black bg-gradient-to-r from-purple-700 via-pink-600 to-amber-600 bg-clip-text text-transparent tracking-tight leading-tight">
+                        THỬ THÁCH SO SÁNH SỐ THẬP PHÂN
+                    </h1>
+                    <p class="text-xs text-slate-500 font-semibold hidden sm:block">Chương trình Luyện tập Toán Lớp 5 theo chuẩn Bộ GD&ĐT</p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center space-x-2">
+                <!-- Sound Toggle -->
+                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-2xl border-2 border-purple-200 bg-purple-50/90 hover:bg-purple-100 text-purple-700 transition shadow-sm flex items-center space-x-1.5 text-sm font-bold" title="Bật/Tắt Âm thanh">
+                    <span id="soundIcon" class="text-base">🔇</span>
+                    <span id="soundText" class="hidden md:inline text-xs">Âm thanh: TẮT</span>
+                </button>
+                <!-- Refresh / Reset Game Button -->
+                <button onclick="restartGame()" class="p-2.5 rounded-2xl border-2 border-amber-200 bg-amber-50/90 hover:bg-amber-100 text-amber-700 transition shadow-sm flex items-center space-x-1 text-sm font-bold" title="Làm mới trò chơi">
+                    <span>🔄</span>
+                    <span class="hidden md:inline text-xs">Làm mới</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-4xl w-full mx-auto px-4 py-6 flex-1 flex flex-col justify-center items-center">
+        
+        <!-- DASHBOARD / PROGRESS BAR CARD -->
+        <div class="w-full bg-white/95 rounded-3xl p-4 md:p-5 shadow-xl border-2 border-pink-200/60 mb-6 backdrop-blur-sm">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center mb-3">
+                <!-- Question Count -->
+                <div class="bg-gradient-to-br from-cyan-50 to-blue-100/80 border-2 border-cyan-200 rounded-2xl p-2.5 flex flex-col justify-center shadow-sm">
+                    <span class="text-[11px] uppercase tracking-wider text-cyan-700 font-extrabold flex items-center justify-center gap-1">
+                        <span>🧩</span> Câu hỏi
+                    </span>
+                    <span id="questionProgressText" class="text-xl md:text-2xl font-black text-cyan-600">1 / 15</span>
+                </div>
+                <!-- Score -->
+                <div class="bg-gradient-to-br from-amber-50 to-yellow-100/80 border-2 border-amber-200 rounded-2xl p-2.5 flex flex-col justify-center shadow-sm">
+                    <span class="text-[11px] uppercase tracking-wider text-amber-700 font-extrabold flex items-center justify-center gap-1">
+                        <span>⭐</span> Điểm số
+                    </span>
+                    <span id="scoreText" class="text-xl md:text-2xl font-black text-amber-500">0</span>
+                </div>
+                <!-- Correct Answers -->
+                <div class="bg-gradient-to-br from-emerald-50 to-teal-100/80 border-2 border-emerald-200 rounded-2xl p-2.5 flex flex-col justify-center shadow-sm">
+                    <span class="text-[11px] uppercase tracking-wider text-emerald-700 font-extrabold flex items-center justify-center gap-1">
+                        <span>🎯</span> Số câu đúng
+                    </span>
+                    <span id="correctCountText" class="text-xl md:text-2xl font-black text-emerald-600">0</span>
+                </div>
+                <!-- Level Badge -->
+                <div class="bg-gradient-to-br from-purple-50 to-fuchsia-100/80 border-2 border-purple-200 rounded-2xl p-2.5 flex flex-col justify-center shadow-sm">
+                    <span class="text-[11px] uppercase tracking-wider text-purple-700 font-extrabold flex items-center justify-center gap-1">
+                        <span>🚀</span> Cấp độ
+                    </span>
+                    <span id="levelBadge" class="text-sm md:text-base font-black text-purple-600">Cơ bản</span>
+                </div>
+            </div>
+
+            <!-- Colorful Progress Bar -->
+            <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200 shadow-inner">
+                <div id="progressBar" class="bg-gradient-to-r from-pink-500 via-amber-400 via-emerald-400 to-indigo-500 h-full rounded-full transition-all duration-500 ease-out" style="width: 6.66%;"></div>
+            </div>
+        </div>
+
+        <!-- QUESTION CARD -->
+        <div id="questionCard" class="w-full bg-white/95 rounded-3xl p-6 md:p-8 shadow-2xl border-2 border-indigo-100 relative overflow-hidden transition-all duration-300">
+            <!-- Decorative Subtle Shapes -->
+            <div class="absolute -top-12 -right-12 w-36 h-36 bg-pink-100 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-amber-100 rounded-full blur-2xl pointer-events-none"></div>
+
+            <!-- Instruction -->
+            <div class="text-center mb-6">
+                <span class="inline-block bg-gradient-to-r from-purple-600 via-pink-600 to-rose-500 text-white font-extrabold text-xs md:text-sm px-5 py-2 rounded-full shadow-md transform hover:scale-105 transition">
+                    💡 Hãy chọn hoặc kéo dấu thích hợp vào ô [ ? ]
+                </span>
+            </div>
+
+            <!-- MAIN EQUATION DISPLAY -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 my-4 py-2">
+                
+                <!-- Left Decimal Number (Warm Vibrant Theme) -->
+                <div class="bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 border-3 border-orange-300 rounded-3xl px-6 py-4 md:px-8 md:py-6 shadow-lg min-w-[140px] md:min-w-[190px] text-center transform hover:rotate-[-1deg] transition">
+                    <span class="text-xs font-black uppercase text-orange-400 block mb-1">Số thứ nhất</span>
+                    <span id="leftNumber" class="text-4xl md:text-5xl font-black text-orange-600 tracking-tight">3,7</span>
+                </div>
+
+                <!-- Drop Zone Target [ ? ] -->
+                <div id="dropZone" 
+                     class="w-24 h-24 md:w-28 md:h-28 rounded-3xl border-4 border-dashed border-purple-400 bg-purple-50/70 flex items-center justify-center cursor-pointer transition-all duration-200 shadow-inner group relative transform hover:scale-105"
+                     onclick="handleDropZoneClick()"
+                     title="Kéo đáp án vào đây hoặc bấm trực tiếp vào dấu phía dưới">
+                     
+                    <!-- Placeholder / Current Selected Symbol -->
+                    <span id="dropZoneContent" class="text-4xl md:text-5xl font-black text-purple-600 transition-transform transform group-hover:scale-110">?</span>
+                    
+                    <!-- Pulsing helper text inside drop zone when empty -->
+                    <span id="dropZoneHint" class="absolute bottom-1.5 text-[10px] text-purple-400 font-bold uppercase tracking-wider pointer-events-none">Ô thả dấu</span>
+                </div>
+
+                <!-- Right Decimal Number (Cool Vibrant Theme) -->
+                <div class="bg-gradient-to-br from-cyan-50 via-sky-50 to-indigo-50 border-3 border-cyan-300 rounded-3xl px-6 py-4 md:px-8 md:py-6 shadow-lg min-w-[140px] md:min-w-[190px] text-center transform hover:rotate-[1deg] transition">
+                    <span class="text-xs font-black uppercase text-cyan-500 block mb-1">Số thứ hai</span>
+                    <span id="rightNumber" class="text-4xl md:text-5xl font-black text-cyan-600 tracking-tight">3,65</span>
+                </div>
+            </div>
+
+            <!-- ANSWER CARDS CONTAINER (KHO ĐÁP ÁN) -->
+            <div class="mt-8 pt-6 border-t-2 border-dashed border-slate-200">
+                <p class="text-center text-xs font-black uppercase tracking-wider text-purple-500 mb-4 flex items-center justify-center gap-1">
+                    <span>✨</span> BẢNG DẤU SO SÁNH <span>✨</span>
+                </p>
+                
+                <div id="optionsContainer" class="flex justify-center items-center gap-4 md:gap-8 max-w-md mx-auto">
+                    <!-- Cards will be dynamically inserted here via JS -->
+                </div>
+            </div>
+
+            <!-- FEEDBACK & PEDAGOGICAL HINT BOX -->
+            <div id="feedbackBox" class="mt-6 hidden transition-all duration-300">
+                <div id="feedbackAlert" class="rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md">
+                    <div class="flex items-start space-x-3">
+                        <span id="feedbackIcon" class="text-3xl">🎉</span>
+                        <div>
+                            <h4 id="feedbackTitle" class="font-extrabold text-base md:text-lg">Chính xác!</h4>
+                            <p id="feedbackText" class="text-xs md:text-sm font-medium mt-0.5">Em làm rất tốt!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Action button (e.g. Try Again or Next) -->
+                    <div id="feedbackActions" class="w-full md:w-auto flex justify-end">
+                        <button id="retryBtn" onclick="resetCurrentQuestionState()" class="hidden px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs md:text-sm rounded-xl shadow-md transition">
+                            🔄 Thử lại câu này
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Detailed Pedagogical Step-by-Step Hint -->
+                <div id="pedagogicalHintCard" class="mt-3 bg-amber-50/90 border border-amber-200 rounded-2xl p-4 text-amber-900 hidden animate-pop">
+                    <div class="flex items-center space-x-2 font-bold text-xs md:text-sm text-amber-800 mb-2">
+                        <span>🧠</span>
+                        <span>GỢI Ý TỪ THẦY CÔ:</span>
+                    </div>
+                    <div id="hintContent" class="text-xs md:text-sm font-medium space-y-1.5 leading-relaxed">
+                        <!-- Dynamic step by step hint text will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full py-3 text-center text-xs text-slate-400 font-medium">
+        <p>Học tốt Toán 5 • Dành cho học sinh Tiểu học • Thiết kế EdTech chuẩn trực quan</p>
+    </footer>
+
+    <!-- COMPLETION MODAL -->
+    <div id="completionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-pop">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-blue-100 text-center relative overflow-hidden">
+            <!-- Top Banner Visual -->
+            <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner border border-amber-200 animate-float">
+                🏆
+            </div>
+
+            <h2 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">HOÀN THÀNH THỬ THÁCH!</h2>
+            <p class="text-slate-500 text-xs md:text-sm mt-1 font-medium">Em đã xuất sắc hoàn thành tất cả các câu hỏi so sánh số thập phân!</p>
+
+            <!-- Stats Summary Grid -->
+            <div class="grid grid-cols-3 gap-3 my-6 bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+                <div class="bg-white p-3 rounded-xl border border-blue-50 shadow-sm">
+                    <p class="text-[10px] md:text-xs font-bold uppercase text-slate-400">Tổng điểm</p>
+                    <p id="finalScore" class="text-xl md:text-2xl font-black text-blue-600">150</p>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-blue-50 shadow-sm">
+                    <p class="text-[10px] md:text-xs font-bold uppercase text-slate-400">Số câu đúng</p>
+                    <p id="finalCorrect" class="text-xl md:text-2xl font-black text-emerald-600">15 / 15</p>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-blue-50 shadow-sm">
+                    <p class="text-[10px] md:text-xs font-bold uppercase text-slate-400">Độ chính xác</p>
+                    <p id="finalAccuracy" class="text-xl md:text-2xl font-black text-purple-600">100%</p>
+                </div>
+            </div>
+
+            <!-- Automated Teacher Evaluation Feedback -->
+            <div id="finalEvaluationCard" class="p-4 rounded-2xl text-left text-xs md:text-sm font-semibold mb-6 flex items-start space-x-3 bg-emerald-50 border border-emerald-200 text-emerald-800">
+                <span class="text-2xl">🌟</span>
+                <div>
+                    <h5 class="font-extrabold text-emerald-900">Nhận xét:</h5>
+                    <p id="finalEvaluationText">Tuyệt vời! Em so sánh số thập phân rất chính xác!</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+                <button onclick="restartGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl shadow-lg transition btn-3d text-sm md:text-base" style="--shadow-color: #1d4ed8;">
+                    🔄 Chơi lại từ đầu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * QUESTION DATA BANK
+         * Grade 5 standard Vietnamese Decimal Comparison questions across 3 difficulty levels.
+         */
+        const rawQuestionBank = [
+            // LEVEL 1: CƠ BẢN (5 câu) - Khác phần nguyên hoặc phần thập phân đơn giản
+            {
+                left: "3,5",
+                right: "4,2",
+                answer: "<",
+                level: 1,
+                hint: "Hãy so sánh phần nguyên trước: 3 và 4."
+            },
+            {
+                left: "6,7",
+                right: "6,3",
+                answer: ">",
+                level: 1,
+                hint: "Phần nguyên bằng nhau (đều là 6). Hãy so sánh hàng phần mười: 7 và 3."
+            },
+            {
+                left: "8,9",
+                right: "9,1",
+                answer: "<",
+                level: 1,
+                hint: "Hãy so sánh phần nguyên trước: 8 và 9."
+            },
+            {
+                left: "12,4",
+                right: "12,1",
+                answer: ">",
+                level: 1,
+                hint: "Phần nguyên bằng nhau (đều là 12). So sánh hàng phần mười: 4 và 1."
+            },
+            {
+                left: "5,8",
+                right: "5,9",
+                answer: "<",
+                level: 1,
+                hint: "Phần nguyên bằng nhau (đều là 5). So sánh hàng phần mười: 8 và 9."
+            },
+
+            // LEVEL 2: THÔNG HIỂU (5 câu) - Cùng phần nguyên, chữ số 0 ở đuôi hoặc số chữ số thập phân khác nhau
+            {
+                left: "5,6",
+                right: "5,48",
+                answer: ">",
+                level: 2,
+                hint: "Phần nguyên bằng nhau (5). So sánh hàng phần mười: 6 và 4. Vì 6 > 4 nên 5,6 > 5,48."
+            },
+            {
+                left: "7,25",
+                right: "7,3",
+                answer: "<",
+                level: 2,
+                hint: "Phần nguyên bằng nhau (7). So sánh hàng phần mười: 2 và 3. Vì 2 < 3 nên 7,25 < 7,3."
+            },
+            {
+                left: "3,5",
+                right: "3,50",
+                answer: "=",
+                level: 2,
+                hint: "Viết thêm chữ số 0 vào bên phải phần thập phân không làm thay đổi giá trị. 3,5 = 3,50."
+            },
+            {
+                left: "4,08",
+                right: "4,8",
+                answer: "<",
+                level: 2,
+                hint: "Phần nguyên bằng nhau (4). So sánh hàng phần mười: 0 và 8. Vì 0 < 8 nên 4,08 < 4,8."
+            },
+            {
+                left: "5,40",
+                right: "5,4",
+                answer: "=",
+                level: 2,
+                hint: "Nếu bỏ chữ số 0 ở tận cùng bên phải phần thập phân, giá trị của số không đổi."
+            },
+
+            // LEVEL 3: VẬN DỤNG (5 câu) - Nhiều chữ số 0, so sánh hàng phần trăm, phần nghìn
+            {
+                left: "8,09",
+                right: "8,090",
+                answer: "=",
+                level: 3,
+                hint: "8,090 có thể bỏ chữ số 0 ở tận cùng bên phải phần thập phân thành 8,09."
+            },
+            {
+                left: "3,405",
+                right: "3,45",
+                answer: "<",
+                level: 3,
+                hint: "Phần nguyên = 3, hàng phần mười = 4. So sánh hàng phần trăm: 0 và 5. Vì 0 < 5 nên 3,405 < 3,45."
+            },
+            {
+                left: "6,099",
+                right: "6,1",
+                answer: "<",
+                level: 3,
+                hint: "Phần nguyên = 6. So sánh hàng phần mười: 0 và 1. Vì 0 < 1 nên 6,099 < 6,1."
+            },
+            {
+                left: "7,09",
+                right: "7,90",
+                answer: "<",
+                level: 3,
+                hint: "So sánh hàng phần mười: 0 và 9. Vì 0 < 9 nên 7,09 < 7,90."
+            },
+            {
+                left: "2,501",
+                right: "2,51",
+                answer: "<",
+                level: 3,
+                hint: "Phần nguyên = 2, hàng phần mười = 5. So sánh hàng phần trăm: 0 và 1. Vì 0 < 1 nên 2,501 < 2,51."
+            }
+        ];
+
+        // GAME STATE
+        let questions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let correctCount = 0;
+        let isAudioEnabled = false;
+        let selectedOption = null;
+        let isAnswered = false;
+        let audioCtx = null;
+
+        // WEB AUDIO SYNTHESIZER (No external audio files required)
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+        }
+
+        function playSound(type) {
+            if (!isAudioEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                // Happy double chime (E5 -> A5)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(659.25, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'wrong') {
+                // Low subtle buzz
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(130, now + 0.25);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'win') {
+                // Arpeggio triumph sound
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine';
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    g.gain.setValueAtTime(0.2, now + idx * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                    o.start(now + idx * 0.1);
+                    o.stop(now + idx * 0.1 + 0.3);
+                });
+            }
+        }
+
+        function toggleSound() {
+            isAudioEnabled = !isAudioEnabled;
+            const icon = document.getElementById('soundIcon');
+            const text = document.getElementById('soundText');
+            if (isAudioEnabled) {
+                initAudio();
+                icon.textContent = "🔊";
+                text.textContent = "Âm thanh: BẬT";
+                playSound('correct');
+            } else {
+                icon.textContent = "🔇";
+                text.textContent = "Âm thanh: TẮT";
+            }
+        }
+
+        /**
+         * MATH UTILS
+         * Convert Vietnamese decimal string (with comma) to JavaScript Number
+         */
+        function parseDecimalVN(valStr) {
+            if (!valStr) return 0;
+            return Number(valStr.toString().trim().replace(',', '.'));
+        }
+
+        /**
+         * Dynamic Pedagogical Hint Generator according to Grade 5 rules
+         */
+        function generatePedagogicalHint(leftStr, rightStr, correctAns) {
+            const numA = parseDecimalVN(leftStr);
+            const numB = parseDecimalVN(rightStr);
+
+            const intA = Math.floor(numA);
+            const intB = Math.floor(numB);
+
+            let hintSteps = [];
+
+            // Step 1: Compare Whole Numbers
+            if (intA !== intB) {
+                hintSteps.push(`• <b>Bước 1:</b> So sánh phần nguyên của hai số: <b>${intA}</b> và <b>${intB}</b>.`);
+                if (intA > intB) {
+                    hintSteps.push(`• Vì <b>${intA} > ${intB}</b> nên <b>${leftStr} > ${rightStr}</b>.`);
+                } else {
+                    hintSteps.push(`• Vì <b>${intA} < ${intB}</b> nên <b>${leftStr} < ${rightStr}</b>.`);
+                }
+                return hintSteps.join('<br>');
+            }
+
+            // Step 2: Whole numbers are equal
+            hintSteps.push(`• <b>Bước 1:</b> Phần nguyên của hai số đều bằng <b>${intA}</b>.`);
+
+            // Get digits after comma
+            const splitA = leftStr.split(',');
+            const splitB = rightStr.split(',');
+            const decA = splitA[1] || "";
+            const decB = splitB[1] || "";
+
+            // Check trailing zero equivalence
+            if (numA === numB) {
+                hintSteps.push(`• <b>Bước 2:</b> Khi viết thêm hoặc bỏ đi các chữ số 0 ở bên phải phần thập phân thì giá trị của số thập phân không thay đổi.`);
+                hintSteps.push(`• Do đó: <b>${leftStr} = ${rightStr}</b>.`);
+                return hintSteps.join('<br>');
+            }
+
+            // Compare digit by digit from left to right (tenths, hundredths, thousandths)
+            const maxLen = Math.max(decA.length, decB.length);
+            for (let i = 0; i < maxLen; i++) {
+                const digitA = parseInt(decA[i] || "0", 10);
+                const digitB = parseInt(decB[i] || "0", 10);
+                
+                const posName = i === 0 ? "hàng phần mười" : i === 1 ? "hàng phần trăm" : "hàng phần nghìn";
+
+                if (digitA !== digitB) {
+                    hintSteps.push(`• <b>Bước 2:</b> So sánh ${posName}: <b>${digitA}</b> và <b>${digitB}</b>.`);
+                    if (digitA > digitB) {
+                        hintSteps.push(`• Vì <b>${digitA} > ${digitB}</b> nên <b>${leftStr} > ${rightStr}</b>.`);
+                    } else {
+                        hintSteps.push(`• Vì <b>${digitA} < ${digitB}</b> nên <b>${leftStr} < ${rightStr}</b>.`);
+                    }
+                    break;
+                }
+            }
+
+            return hintSteps.join('<br>');
+        }
+
+        // SHUFFLE HELPER (Fisher-Yates)
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function restartGame() {
+            // Shuffle question bank
+            questions = shuffleArray(rawQuestionBank);
+            currentIndex = 0;
+            score = 0;
+            correctCount = 0;
+            isAnswered = false;
+
+            // Hide modal if open
+            document.getElementById('completionModal').classList.add('hidden');
+
+            // Render first question
+            renderQuestion();
+            updateScoreboard();
+        }
+
+        function renderQuestion() {
+            if (currentIndex >= questions.length) {
+                showCompletionModal();
+                return;
+            }
+
+            const q = questions[currentIndex];
+            isAnswered = false;
+            selectedOption = null;
+
+            // Update Question Cards
+            document.getElementById('leftNumber').textContent = q.left;
+            document.getElementById('rightNumber').textContent = q.right;
+
+            // Reset Drop Zone
+            const dropZone = document.getElementById('dropZone');
+            const dropZoneContent = document.getElementById('dropZoneContent');
+            const dropZoneHint = document.getElementById('dropZoneHint');
+            
+            dropZoneContent.textContent = '?';
+            dropZoneContent.className = 'text-4xl md:text-5xl font-black text-blue-600 transition-transform transform group-hover:scale-110';
+            dropZoneHint.style.display = 'block';
+            
+            dropZone.className = "w-24 h-24 md:w-28 md:h-28 rounded-2xl border-3 border-dashed border-blue-400 bg-blue-50/50 flex items-center justify-center cursor-pointer transition-all duration-200 shadow-inner group relative";
+
+            // Update Level Badge
+            const levelBadge = document.getElementById('levelBadge');
+            if (q.level === 1) {
+                levelBadge.textContent = "Cơ bản";
+                levelBadge.className = "text-sm md:text-base font-extrabold text-emerald-600";
+            } else if (q.level === 2) {
+                levelBadge.textContent = "Thông hiểu";
+                levelBadge.className = "text-sm md:text-base font-extrabold text-indigo-600";
+            } else {
+                levelBadge.textContent = "Vận dụng";
+                levelBadge.className = "text-sm md:text-base font-extrabold text-amber-600";
+            }
+
+            // Hide Feedback & Hints
+            document.getElementById('feedbackBox').classList.add('hidden');
+            document.getElementById('pedagogicalHintCard').classList.add('hidden');
+
+            // Render Answer Option Cards (Shuffle position of > < =)
+            renderAnswerOptions();
+
+            // Update scoreboard text & progress
+            updateScoreboard();
+        }
+
+        function renderAnswerOptions() {
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            // Standard options shuffled per question
+            const symbols = shuffleArray(['>', '<', '=']);
+
+            symbols.forEach(sym => {
+                const btn = document.createElement('div');
+                
+                // Assign vibrant distinct color classes based on operator symbol
+                let colorClass = "sym-equal";
+                if (sym === '>') colorClass = "sym-greater";
+                else if (sym === '<') colorClass = "sym-less";
+
+                btn.className = `w-20 h-20 md:w-24 md:h-24 rounded-3xl border-3 flex items-center justify-center text-3xl md:text-4xl font-black cursor-pointer shadow-lg btn-3d select-none transition ${colorClass}`;
+                btn.textContent = sym;
+                btn.setAttribute('draggable', 'true');
+                btn.setAttribute('data-symbol', sym);
+
+                // Click / Tap Handler
+                btn.onclick = () => handleAnswerSelect(sym);
+
+                // Drag & Drop Handlers
+                btn.ondragstart = (e) => handleDragStart(e, sym);
+                btn.ondragend = handleDragEnd;
+
+                // Touch drag support fallback
+                btn.addEventListener('touchstart', (e) => handleTouchStart(e, sym), {passive: true});
+
+                container.appendChild(btn);
+            });
+        }
+
+        function updateScoreboard() {
+            const total = questions.length;
+            document.getElementById('questionProgressText').textContent = `${currentIndex + 1} / ${total}`;
+            document.getElementById('scoreText').textContent = score;
+            document.getElementById('correctCountText').textContent = correctCount;
+
+            const percent = ((currentIndex) / total) * 100;
+            document.getElementById('progressBar').style.width = `${Math.max(percent, 5)}%`;
+        }
+
+        // DRAG & DROP LOGIC
+        let draggedSymbol = null;
+
+        function handleDragStart(e, symbol) {
+            if (isAnswered) return;
+            draggedSymbol = symbol;
+            e.dataTransfer.setData('text/plain', symbol);
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        // Setup Drop Zone Drag Listeners
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            if (!isAnswered) {
+                dropZone.classList.add('drop-zone-active');
+            }
+        };
+
+        dropZone.ondragleave = () => {
+            dropZone.classList.remove('drop-zone-active');
+        };
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drop-zone-active');
+            if (isAnswered) return;
+
+            const symbol = e.dataTransfer.getData('text/plain') || draggedSymbol;
+            if (symbol) {
+                handleAnswerSelect(symbol);
+            }
+        };
+
+        function handleDropZoneClick() {
+            // Drop zone click hint
+            if (!isAnswered) {
+                const dropZone = document.getElementById('dropZone');
+                dropZone.classList.add('animate-shake');
+                setTimeout(() => dropZone.classList.remove('animate-shake'), 400);
+            }
+        }
+
+        // Touch Drag Fallback for mobile devices
+        let touchSymbol = null;
+        function handleTouchStart(e, symbol) {
+            touchSymbol = symbol;
+        }
+
+        // ANSWER SELECTION LOGIC
+        function handleAnswerSelect(symbol) {
+            if (isAnswered) return;
+
+            const q = questions[currentIndex];
+            selectedOption = symbol;
+
+            // Display symbol in Drop Zone
+            const dropZoneContent = document.getElementById('dropZoneContent');
+            const dropZoneHint = document.getElementById('dropZoneHint');
+            dropZoneContent.textContent = symbol;
+            dropZoneHint.style.display = 'none';
+
+            // Mathematical verification check
+            const numA = parseDecimalVN(q.left);
+            const numB = parseDecimalVN(q.right);
+
+            let expectedAnswer = "=";
+            if (numA > numB) expectedAnswer = ">";
+            else if (numA < numB) expectedAnswer = "<";
+
+            const isCorrect = (symbol === expectedAnswer);
+
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackAlert = document.getElementById('feedbackAlert');
+            const feedbackIcon = document.getElementById('feedbackIcon');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackText = document.getElementById('feedbackText');
+            const pedagogicalHintCard = document.getElementById('pedagogicalHintCard');
+            const hintContent = document.getElementById('hintContent');
+            const retryBtn = document.getElementById('retryBtn');
+
+            feedbackBox.classList.remove('hidden');
+
+            if (isCorrect) {
+                // --- CORRECT ANSWER ---
+                isAnswered = true;
+                score += 10;
+                correctCount += 10 ? 1 : 0; // Increment count
+
+                playSound('correct');
+
+                // Style Drop Zone
+                dropZone.className = "w-24 h-24 md:w-28 md:h-28 rounded-2xl border-4 border-emerald-500 bg-emerald-50 flex items-center justify-center shadow-lg animate-pop relative";
+                dropZoneContent.className = "text-4xl md:text-5xl font-black text-emerald-600";
+
+                // Feedback Alert Styling
+                feedbackAlert.className = "rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md bg-emerald-50 border border-emerald-200 text-emerald-900 animate-pop";
+                feedbackIcon.textContent = "🎉";
+                feedbackTitle.textContent = "Chính xác! Cực kỳ xuất sắc!";
+                feedbackText.textContent = `Em đã chọn đúng: ${q.left} ${symbol} ${q.right}`;
+                retryBtn.classList.add('hidden');
+                pedagogicalHintCard.classList.add('hidden');
+
+                // Automatically advance after 1.3s
+                setTimeout(() => {
+                    currentIndex++;
+                    renderQuestion();
+                }, 1300);
+
+            } else {
+                // --- INCORRECT ANSWER ---
+                playSound('wrong');
+
+                // Style Drop Zone Wrong
+                dropZone.className = "w-24 h-24 md:w-28 md:h-28 rounded-2xl border-4 border-rose-400 bg-rose-50 flex items-center justify-center shadow-md animate-shake relative";
+                dropZoneContent.className = "text-4xl md:text-5xl font-black text-rose-600";
+
+                // Feedback Alert Styling
+                feedbackAlert.className = "rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md bg-rose-50 border border-rose-200 text-rose-900 animate-pop";
+                feedbackIcon.textContent = "💡";
+                feedbackTitle.textContent = "Chưa chính xác! Hãy suy nghĩ thêm nhé.";
+                feedbackText.textContent = `Hãy quan sát gợi ý dưới đây để tìm ra đáp án đúng!`;
+                retryBtn.classList.remove('hidden');
+
+                // Show Pedagogical Hint
+                const hintTextHtml = generatePedagogicalHint(q.left, q.right, expectedAnswer);
+                hintContent.innerHTML = hintTextHtml;
+                pedagogicalHintCard.classList.remove('hidden');
+            }
+
+            updateScoreboard();
+        }
+
+        function resetCurrentQuestionState() {
+            // Allow student to retry current question without skipping
+            isAnswered = false;
+            
+            const dropZone = document.getElementById('dropZone');
+            const dropZoneContent = document.getElementById('dropZoneContent');
+            const dropZoneHint = document.getElementById('dropZoneHint');
+
+            dropZoneContent.textContent = '?';
+            dropZoneContent.className = 'text-4xl md:text-5xl font-black text-blue-600 transition-transform transform group-hover:scale-110';
+            dropZoneHint.style.display = 'block';
+            dropZone.className = "w-24 h-24 md:w-28 md:h-28 rounded-2xl border-3 border-dashed border-blue-400 bg-blue-50/50 flex items-center justify-center cursor-pointer transition-all duration-200 shadow-inner group relative";
+
+            document.getElementById('feedbackBox').classList.add('hidden');
+        }
+
+        // COMPLETION MODAL & EVALUATION LOGIC
+        function showCompletionModal() {
+            playSound('win');
+
+            const total = questions.length;
+            const maxScore = total * 10;
+            const accuracyPct = Math.round((correctCount / total) * 100);
+
+            document.getElementById('finalScore').textContent = `${score} / ${maxScore}`;
+            document.getElementById('finalCorrect').textContent = `${correctCount} / ${total}`;
+            document.getElementById('finalAccuracy').textContent = `${accuracyPct}%`;
+
+            const evalCard = document.getElementById('finalEvaluationCard');
+            const evalText = document.getElementById('finalEvaluationText');
+
+            if (accuracyPct === 100) {
+                evalCard.className = "p-4 rounded-2xl text-left text-xs md:text-sm font-semibold mb-6 flex items-start space-x-3 bg-emerald-50 border border-emerald-200 text-emerald-800";
+                evalText.textContent = "🏆 Tuyệt vời! Em so sánh số thập phân rất chính xác!";
+            } else if (accuracyPct >= 80) {
+                evalCard.className = "p-4 rounded-2xl text-left text-xs md:text-sm font-semibold mb-6 flex items-start space-x-3 bg-blue-50 border border-blue-200 text-blue-800";
+                evalText.textContent = "🌟 Rất tốt! Em đã nắm chắc quy tắc so sánh từ phần nguyên đến các hàng thập phân.";
+            } else if (accuracyPct >= 60) {
+                evalCard.className = "p-4 rounded-2xl text-left text-xs md:text-sm font-semibold mb-6 flex items-start space-x-3 bg-amber-50 border border-amber-200 text-amber-800";
+                evalText.textContent = "👍 Cố gắng rất tốt! Hãy chú ý hơn khi so sánh các chữ số 0 ở phần thập phân nhé.";
+            } else {
+                evalCard.className = "p-4 rounded-2xl text-left text-xs md:text-sm font-semibold mb-6 flex items-start space-x-3 bg-rose-50 border border-rose-200 text-rose-800";
+                evalText.textContent = "💪 Đừng bỏ cuộc! Hãy nhớ nguyên tắc: So sánh phần nguyên trước, sau đó so sánh từng hàng từ trái sang phải.";
+            }
+
+            // Fill complete progress bar
+            document.getElementById('progressBar').style.width = '100%';
+
+            document.getElementById('completionModal').classList.remove('hidden');
+        }
+
+        // KEYBOARD ACCESSIBILITY (Keys 1 or > for >, 2 or < for <, 3 or = for =)
+        document.addEventListener('keydown', (e) => {
+            if (isAnswered) return;
+            if (e.key === '>' || e.key === '1') {
+                handleAnswerSelect('>');
+            } else if (e.key === '<' || e.key === '2') {
+                handleAnswerSelect('<');
+            } else if (e.key === '=' || e.key === '3') {
+                handleAnswerSelect('=');
+            }
+        });
+
+        // INIT ON WINDOW LOAD
+        window.onload = function() {
+            restartGame();
+        };
+    </script>
+</body>
+</html>
